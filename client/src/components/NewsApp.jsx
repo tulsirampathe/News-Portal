@@ -4,6 +4,7 @@ import ContactForm from "./ContactForm";
 import LoginModal from "./LoginModal";
 import Navbar from "./Navbar";
 import axiosInstance from "../../api/axiosInstance";
+import NoNewsCard from "../../utils/NoNewsCard";
 // import { dummyNews } from "../data/dummyNews";
 
 const NewsApp = () => {
@@ -338,25 +339,8 @@ const NewsApp = () => {
 
   // Updated NewsGrid component to show media indicators
   const NewsGrid = ({ newsList = [], onNewsSelect }) => {
-
     if (newsList.length == 0) {
-      return (
-        <div className="max-w-sm mx-auto bg-white shadow-md rounded-2xl p-6 text-center">
-          {/* Animated Icon */}
-          <div className="text-6xl mb-4 animate-bounce">📰</div>
-
-          {/* Title */}
-          <h2 className="text-xl font-semibold text-gray-800 mb-2">
-            No News Found
-          </h2>
-
-          {/* Description */}
-          <p className="text-sm text-gray-500">
-            There’s currently no news available for this category. Try selecting
-            a different one or check back later.
-          </p>
-        </div>
-      );
+      return <NoNewsCard />;
     }
 
     return (
@@ -521,11 +505,13 @@ const NewsApp = () => {
                 </div>
               ) : error ? (
                 <div className="text-center text-red-500 mt-12">{error}</div>
+              ) : !newsList || newsList?.length === 0 ? (
+                <NoNewsCard />
               ) : (
                 <NewsGrid
                   newsList={
                     selectedCategory && selectedCategory !== "All"
-                      ? newsList.filter((n) => n.category === selectedCategory)
+                      ? newsList?.filter((n) => n.category === selectedCategory)
                       : newsList
                   }
                   onNewsSelect={handleNewsSelect}
