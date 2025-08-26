@@ -337,8 +337,7 @@ const NewsApp = () => {
   };
 
   // Updated NewsGrid component to show media indicators
-  const NewsGrid = ({ newsList, onNewsSelect }) => {
-    console.log(newsList.length);
+  const NewsGrid = ({ newsList = [], onNewsSelect }) => {
 
     if (newsList.length == 0) {
       return (
