@@ -1,25 +1,25 @@
 import React from "react";
 
 const categories = [
-  { label: "Top News", icon: "🔥" },
-  { label: "State & Cities", icon: "📍" },
-  { label: "Special Reports", icon: "⭐" },
-  { label: "DB Originals", icon: "🔥" },
-  { label: "Sports", icon: "🏃" },
-  { label: "Bollywood", icon: "🎬" },
-  { label: "Jobs & Education", icon: "💼" },
-  { label: "Business", icon: "💵" },
-  { label: "Lifestyle", icon: "✨" },
-  { label: "Life Mantra", icon: "🤝" },
+  { label: "All", icon: "📰" },
+  { label: "Politics", icon: "🏛️" },
+  { label: "Business", icon: "💼" },
+  { label: "Technology", icon: "💻" },
+  { label: "Health", icon: "🩺" },
+  { label: "Entertainment", icon: "🎭" },
+  { label: "Sports", icon: "🏅" },
+  { label: "Science", icon: "🔬" },
+  { label: "World", icon: "🌍" },
 ];
 
-const Categories = ({ horizontal = false }) => {
+const Categories = ({ horizontal = false, onCategorySelect }) => {
   if (horizontal) {
     return (
       <div className="flex gap-2 overflow-x-auto px-1 no-scrollbar">
         {categories.map((cat, index) => (
           <button
             key={index}
+            onClick={() => onCategorySelect?.(cat.label)}
             className="flex items-center gap-2 px-3 py-1.5 border border-gray-300 rounded-full text-sm whitespace-nowrap bg-white text-gray-700 hover:bg-red-50 hover:text-red-600 transition-all duration-200 active:scale-95 shadow-sm"
           >
             <span className="text-base">{cat.icon}</span>
@@ -38,6 +38,7 @@ const Categories = ({ horizontal = false }) => {
         {categories.map((cat, index) => (
           <li
             key={index}
+            onClick={() => onCategorySelect?.(cat.label)}
             className="flex items-center gap-3 p-2 rounded-md text-gray-700 hover:bg-red-50 hover:text-red-600 cursor-pointer transition-transform duration-200 active:scale-95"
           >
             <span className="text-lg">{cat.icon}</span>
