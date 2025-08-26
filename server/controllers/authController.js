@@ -78,7 +78,6 @@ export const getMe = async (req, res, next) => {
   }
 };
 
-// Get token from model, create cookie and send response
 const sendTokenResponse = (user, statusCode, res) => {
   // Create token
   const token = user.getSignedJwtToken();
@@ -92,6 +91,7 @@ const sendTokenResponse = (user, statusCode, res) => {
 
   if (process.env.NODE_ENV === "production") {
     options.secure = true;
+    options.sameSite = "None"; // 🟡 Add this to allow cross-site cookies
   }
 
   res
@@ -107,7 +107,6 @@ const sendTokenResponse = (user, statusCode, res) => {
       },
     });
 };
-
 
 // @desc    Logout user and clear cookie
 // @route   GET /api/auth/logout
