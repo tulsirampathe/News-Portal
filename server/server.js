@@ -1,10 +1,10 @@
-import cors from 'cors';
-import dotenv from 'dotenv';
-import express from 'express';
-import rateLimit from 'express-rate-limit';
-import connectDB from './config/database.js';
-import errorHandler from './middleware/error.js';
-import cookieParser from 'cookie-parser';
+import cors from "cors";
+import dotenv from "dotenv";
+import express from "express";
+import rateLimit from "express-rate-limit";
+import connectDB from "./config/database.js";
+import errorHandler from "./middleware/error.js";
+import cookieParser from "cookie-parser";
 
 // Load env vars
 dotenv.config();
@@ -13,30 +13,30 @@ dotenv.config();
 connectDB();
 
 // Route files
-import auth from './routes/auth.js';
-import news from './routes/news.js';
+import auth from "./routes/auth.js";
+import news from "./routes/news.js";
 
 const app = express();
 
 // Body parser
-app.use(express.json({ limit: '10mb' }));
+app.use(express.json({ limit: "10mb" }));
 
 app.use(cookieParser());
 
-app.use(cors({
-  origin: 'http://localhost:5173',  // frontend origin
-  credentials: true
-}));
-
-
+app.use(
+  cors({
+    origin: process.env.FRONTEND_URL,
+    credentials: true,
+  })
+);
 
 app.get("/", (req, res) => {
-  res.send("Api is working....")
-})
+  res.send("Api is working....");
+});
 
 // Mount routers
-app.use('/api/auth', auth);
-app.use('/api/news', news);
+app.use("/api/auth", auth);
+app.use("/api/news", news);
 
 // Error handler middleware
 app.use(errorHandler);
@@ -48,7 +48,7 @@ const server = app.listen(PORT, () => {
 });
 
 // Handle unhandled promise rejections
-process.on('unhandledRejection', (err, promise) => {
+process.on("unhandledRejection", (err, promise) => {
   console.log(`Error: ${err.message}`);
   // Close server & exit process
   server.close(() => {
