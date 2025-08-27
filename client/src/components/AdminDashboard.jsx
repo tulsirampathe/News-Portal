@@ -1,11 +1,10 @@
 // src/components/AdminDashboard.jsx
-import React, { useState, useRef, useEffect, useCallback } from "react";
-import { useAuth } from "../context/AuthContext";
-import { useNavigate } from "react-router-dom";
-import { dummyNews } from "../data/dummyNews";
-import axiosInstance from "../../api/axiosInstance";
-import Categories from "./Categories";
+import { useEffect, useRef, useState } from "react";
 import toast from "react-hot-toast";
+import { useNavigate } from "react-router-dom";
+import axiosInstance from "../../api/axiosInstance";
+import { useAuth } from "../context/AuthContext";
+import { dummyNews } from "../data/dummyNews";
 
 // Fixed categories for a professional news app
 const FIXED_CATEGORIES = [
@@ -37,6 +36,7 @@ const AdminDashboard = () => {
   const [includeAudio, setIncludeAudio] = useState(false);
   const [filteredNews, setFilteredNews] = useState([]);
   const [error, setError] = useState("");
+  const [submitting, setSubmitting] = useState(false);
 
   // Refs for file inputs
   const imageInputRef = useRef(null);
@@ -90,6 +90,14 @@ const AdminDashboard = () => {
         : newsList.filter((news) => news.category === selectedCategory);
     setFilteredNews(filtered);
   }, [newsList, selectedCategory]);
+
+  useEffect(() => {
+    return () => {
+      if (imagePreview) URL.revokeObjectURL(imagePreview);
+      if (videoPreview) URL.revokeObjectURL(videoPreview);
+      if (audioPreview) URL.revokeObjectURL(audioPreview);
+    };
+  }, [imagePreview, videoPreview, audioPreview]);
 
   // Redirect if not authenticated
   if (!currentUser) {
@@ -167,11 +175,14 @@ const AdminDashboard = () => {
       return;
     }
 
+    // Create preview for UI only
     const previewUrl = URL.createObjectURL(file);
     setPreview(previewUrl);
+
+    // Save actual File object in state
     setFormData((prev) => ({
       ...prev,
-      [`${fileType}Url`]: previewUrl,
+      [`${fileType}File`]: file, // store File object instead of blob URL
     }));
   };
 
@@ -192,33 +203,53 @@ const AdminDashboard = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (!formData.imageUrl) {
-      alert("Please upload an image thumbnail for the news article");
+    if (!formData.imageFile && !editingNews) {
+      toast.error("Please upload an image thumbnail for the news article");
       return;
     }
 
+    setSubmitting(true);
+
     try {
+      const formDataToSend = new FormData();
+      formDataToSend.append("title", formData.title);
+      formDataToSend.append("summary", formData.summary);
+      formDataToSend.append("content", formData.content);
+      formDataToSend.append("category", formData.category);
+      formDataToSend.append("author", formData.author);
+
+      // only append files if they exist
+      if (formData.imageFile)
+        formDataToSend.append("imageUrl", formData.imageFile);
+      if (formData.videoFile)
+        formDataToSend.append("videoUrl", formData.videoFile);
+      if (formData.audioFile)
+        formDataToSend.append("audioUrl", formData.audioFile);
+
+      let response;
       if (editingNews) {
-        const response = await axiosInstance.put(
+        response = await axiosInstance.put(
           `/news/${editingNews._id}`,
-          formData
+          formDataToSend,
+          { headers: { "Content-Type": "multipart/form-data" } }
         );
+      } else {
+        response = await axiosInstance.post("/news", formDataToSend, {
+          headers: { "Content-Type": "multipart/form-data" },
+        });
+      }
 
-        const updatedNews = response.data?.data;
+      const savedNews = response.data?.data;
 
+      if (editingNews) {
         setNewsList((prevList) =>
           prevList.map((news) =>
-            news._id === editingNews._id ? updatedNews : news
+            news._id === editingNews._id ? savedNews : news
           )
         );
-
         toast.success("News updated successfully!");
       } else {
-        const response = await axiosInstance.post("/news", formData);
-
-        const newNews = response.data?.data;
-        setNewsList((prevList) => [newNews, ...prevList]);
-
+        setNewsList((prevList) => [savedNews, ...prevList]);
         toast.success("News created successfully!");
       }
 
@@ -233,19 +264,15 @@ const AdminDashboard = () => {
       setIncludeAudio(false);
     } catch (error) {
       const serverResponse = error.response;
-
       if (serverResponse?.data?.errors) {
-        // Multiple validation errors
-        serverResponse.data.errors.forEach((err) => {
-          toast.error(err.msg); // or err.message depending on your structure
-        });
+        serverResponse.data.errors.forEach((err) => toast.error(err.msg));
       } else if (serverResponse?.data?.error) {
-        // General server error
         toast.error(serverResponse.data.error);
       } else {
-        // Fallback error
         toast.error("Something went wrong. Please try again.");
       }
+    } finally {
+      setSubmitting(false);
     }
   };
 
@@ -725,10 +752,22 @@ const AdminDashboard = () => {
                     <div className="flex space-x-4 pt-4">
                       <button
                         type="submit"
-                        className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors"
+                        disabled={submitting}
+                        className={`px-6 py-2 rounded-lg focus:outline-none focus:ring-2 transition-colors ${
+                          submitting
+                            ? "bg-blue-400 text-white cursor-not-allowed"
+                            : "bg-blue-600 text-white hover:bg-blue-700 focus:ring-blue-500"
+                        }`}
                       >
-                        {editingNews ? "Update News" : "Add News"}
+                        {submitting
+                          ? editingNews
+                            ? "Updating..."
+                            : "Submitting..."
+                          : editingNews
+                          ? "Update News"
+                          : "Add News"}
                       </button>
+
                       <button
                         type="button"
                         onClick={cancelForm}
