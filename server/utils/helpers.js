@@ -8,6 +8,7 @@ export const uploadToCloudinary = async (file, folder) => {
       { folder, resource_type: 'auto' },
       (error, result) => {
         if (error) {
+          console.error("Cloudinary Upload Error:", error);
           reject(new ApiError('File upload failed', 500));
         } else {
           resolve(result);
@@ -40,24 +41,24 @@ export const processFileUploads = async (files) => {
   const uploadResults = {
     imageUrl: null,
     videoUrl: null,
-    audioUrl: null
+    audioUrl: null,
   };
 
   // Process image
-  if (files.image && files.image[0]) {
-    const imageResult = await uploadToCloudinary(files.image[0], 'news-portal/images');
+  if (files.imageUrl && files.imageUrl[0]) {
+    const imageResult = await uploadToCloudinary(files.imageUrl[0], 'news-portal/images');
     uploadResults.imageUrl = imageResult.secure_url;
   }
 
   // Process video
-  if (files.video && files.video[0]) {
-    const videoResult = await uploadToCloudinary(files.video[0], 'news-portal/videos');
+  if (files.videoUrl && files.videoUrl[0]) {
+    const videoResult = await uploadToCloudinary(files.videoUrl[0], 'news-portal/videos');
     uploadResults.videoUrl = videoResult.secure_url;
   }
 
   // Process audio
-  if (files.audio && files.audio[0]) {
-    const audioResult = await uploadToCloudinary(files.audio[0], 'news-portal/audio');
+  if (files.audioUrl && files.audioUrl[0]) {
+    const audioResult = await uploadToCloudinary(files.audioUrl[0], 'news-portal/audio');
     uploadResults.audioUrl = audioResult.secure_url;
   }
 

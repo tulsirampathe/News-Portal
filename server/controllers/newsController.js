@@ -168,24 +168,33 @@ export const updateNews = async (req, res, next) => {
 
     // Process file uploads if any
     if (req.files) {
+
       const uploadResults = await processFileUploads(req.files);
 
-      // Delete old files if new ones are uploaded
-      if (uploadResults.imageUrl && news.imageUrl) {
-        const oldImagePublicId = getPublicIdFromUrl(news.imageUrl);
-        if (oldImagePublicId) await deleteFromCloudinary(oldImagePublicId);
+      // ✅ Handle image update
+      if (uploadResults.imageUrl) {
+        if (news.imageUrl) {
+          const oldImagePublicId = getPublicIdFromUrl(news.imageUrl);
+          if (oldImagePublicId) await deleteFromCloudinary(oldImagePublicId);
+        }
         req.body.imageUrl = uploadResults.imageUrl;
       }
 
-      if (uploadResults.videoUrl && news.videoUrl) {
-        const oldVideoPublicId = getPublicIdFromUrl(news.videoUrl);
-        if (oldVideoPublicId) await deleteFromCloudinary(oldVideoPublicId);
+      // ✅ Handle video update
+      if (uploadResults.videoUrl) {
+        if (news.videoUrl) {
+          const oldVideoPublicId = getPublicIdFromUrl(news.videoUrl);
+          if (oldVideoPublicId) await deleteFromCloudinary(oldVideoPublicId);
+        }
         req.body.videoUrl = uploadResults.videoUrl;
       }
 
-      if (uploadResults.audioUrl && news.audioUrl) {
-        const oldAudioPublicId = getPublicIdFromUrl(news.audioUrl);
-        if (oldAudioPublicId) await deleteFromCloudinary(oldAudioPublicId);
+      // ✅ Handle audio update
+      if (uploadResults.audioUrl) {
+        if (news.audioUrl) {
+          const oldAudioPublicId = getPublicIdFromUrl(news.audioUrl);
+          if (oldAudioPublicId) await deleteFromCloudinary(oldAudioPublicId);
+        }
         req.body.audioUrl = uploadResults.audioUrl;
       }
     }
